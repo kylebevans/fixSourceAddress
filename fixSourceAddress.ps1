@@ -978,22 +978,24 @@ if ($Service) {                 # Run the service
         "TimerTick" { # Example. Periodic event generated for this example
           Log "$scriptName -Service # Timer ticked, checking/fixing source addresses and default route"
 
-          if (!((get-netipaddress -InterfaceAlias Ethernet0 -AddressFamily IPv4)).SkipAsSource) {
-            $ethernet0 = Get-NetAdapter -Name Ethernet0
-            $ethernet0 | Set-NetIPAddress -SkipAsSource $true
-            $ethernet0 | Set-DnsClient -RegisterThisConnectionsAddress $false
-            ipconfig /renew
-          }
-          if (!((get-netipaddress -InterfaceAlias Ethernet1 -AddressFamily IPv4)).SkipAsSource) {
-            $ethernet1 = Get-NetAdapter -Name Ethernet1
-            $ethernet1 | Set-NetIPAddress -SkipAsSource $true
-            $ethernet1 | Set-DnsClient -RegisterThisConnectionsAddress $false
-            ipconfig /renew
-          }
-          if (!(get-netroute 0.0.0.0/0)) {
-            Restart-Service RemoteAccess
-            sleep 20
-          }
+          try {
+            if (!((get-netipaddress -InterfaceAlias Ethernet0 -AddressFamily IPv4)).SkipAsSource) {
+              $ethernet0 = Get-NetAdapter -Name Ethernet0
+              $ethernet0 | Set-NetIPAddress -SkipAsSource $true
+              $ethernet0 | Set-DnsClient -RegisterThisConnectionsAddress $false
+              ipconfig /renew
+            }
+            if (!((get-netipaddress -InterfaceAlias Ethernet1 -AddressFamily IPv4)).SkipAsSource) {
+              $ethernet1 = Get-NetAdapter -Name Ethernet1
+              $ethernet1 | Set-NetIPAddress -SkipAsSource $true
+              $ethernet1 | Set-DnsClient -RegisterThisConnectionsAddress $false
+              ipconfig /renew
+            }
+            if (!(get-netroute 0.0.0.0/0)) {
+              Restart-Service RemoteAccess
+              sleep 20
+            }
+          } catch {}
         }
         default { # Should not happen
           Log "$scriptName -Service # Unexpected event from ${source}: $Message"
